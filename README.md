@@ -1,6 +1,6 @@
-# CacheBreaker
+# CacheDecepHound
 
-CacheBreaker is a Python-based tool designed to identify web cache poisoning vulnerabilities on web servers. It automates the testing of URLs using customizable delimiters and extensions while leveraging multi-threading for fast and efficient scanning.
+CacheDecepHound is a Python-based tool designed to identify web cache poisoning vulnerabilities on web servers. It automates the testing of URLs using customizable delimiters and extensions while leveraging multi-threading for fast and efficient scanning.
 
 ## Features
 - **Custom wordlist support**: Specify your own list of delimiters to test using `-w`.
@@ -13,8 +13,8 @@ CacheBreaker is a Python-based tool designed to identify web cache poisoning vul
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/CacheBreaker.git
-   cd CacheBreaker
+   git clone https://github.com/g4nkd/CacheDecepHound.git
+   cd CacheDecepHound
    ```
 
 2. Install the required dependencies:
@@ -26,7 +26,7 @@ CacheBreaker is a Python-based tool designed to identify web cache poisoning vul
 
 ### Basic Usage
 ```bash
-python cachebreaker.py <URL>
+python cachedecephound.py <URL>
 ```
 
 ### Options
@@ -43,23 +43,29 @@ python cachebreaker.py <URL>
 
 1. Test a URL with default settings:
    ```bash
-   python cachebreaker.py https://example.com
+   python cachedecephound.py https://example.com
    ```
 
 2. Use a custom wordlist and test with additional extensions:
    ```bash
-   python cachebreaker.py https://example.com -w /path/to/wordlist.txt -e .html,.php,.json
+   python cachedecephound.py https://example.com -w /path/to/wordlist.txt -e .html,.php,.json
    ```
 
 3. Add custom headers and increase the number of threads:
    ```bash
-   python cachebreaker.py https://example.com -H "X-Test: TestHeader" -t 20
+   python cachedecephound.py https://example.com -H "X-Test: TestHeader" -t 20
    ```
 
 4. Enable verbose mode to see detailed output:
    ```bash
-   python cachebreaker.py https://example.com -v
+   python cachedecephound.py https://example.com -v
    ```
+
+## Additional Notes
+
+- **Targeting User-Specific URLs:** It is highly recommended to test URLs that include user-specific information, such as `/profile`, `/dashboard`, or other personalized routes. These URLs are more likely to reveal cache poisoning vulnerabilities due to their dynamic content.
+
+- **PortSwigger Wordlist:** You can use the official PortSwigger Web Cache Deception wordlist for delimiters. Download it here: [PortSwigger WCD Delimiter List](https://portswigger.net/web-security/web-cache-deception/wcd-lab-delimiter-list).
 
 ## How It Works
 
