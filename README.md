@@ -1,6 +1,6 @@
 # CacheDecepHound
 
-CacheDecepHound is a Python-based tool designed to identify web cache poisoning vulnerabilities on web servers. It automates the testing of URLs using customizable delimiters and extensions while leveraging multi-threading for fast and efficient scanning.
+CacheDecepHound is a Python-based tool designed to identify web cache poisoning vulnerabilities on web servers. It automates the testing of GET URLs using customizable delimiters and extensions, focusing on potential cache poisoning issues, while leveraging multi-threading for fast and efficient scanning.
 
 ## Features
 - **Custom wordlist support**: Specify your own list of delimiters to test using `-w`.
