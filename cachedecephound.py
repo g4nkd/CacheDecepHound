@@ -64,23 +64,29 @@ def check_cache_behavior(url: str, headers: Dict[str, str]) -> Tuple[str, bool, 
     try:
         # Add default User-Agent to provided headers
         request_headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+            'User-Agent': 'r4nd0m'
         }
         request_headers.update(headers)
 
         debug_info = {}
 
-        # First request
+        # First request - with cookies
         first_response = requests.get(url, headers=request_headers)
         first_cache = first_response.headers.get('X-Cache', '')
         debug_info['first_status'] = first_response.status_code
         debug_info['first_cache'] = first_cache
+        debug_info['first_body'] = first_response.text
 
-        # Second request
-        second_response = requests.get(url, headers=request_headers)
+        # Second request - without cookies
+        headers_without_cookies = request_headers.copy()
+        if 'Cookie' in headers_without_cookies:
+            del headers_without_cookies['Cookie']
+        
+        second_response = requests.get(url, headers=headers_without_cookies)
         second_cache = second_response.headers.get('X-Cache', '')
         debug_info['second_status'] = second_response.status_code
         debug_info['second_cache'] = second_cache
+        debug_info['second_body'] = second_response.text
 
         # Strict check for cache behavior
         is_vulnerable = (
@@ -88,7 +94,8 @@ def check_cache_behavior(url: str, headers: Dict[str, str]) -> Tuple[str, bool, 
             'miss' in first_cache.lower() and  # First must be a miss
             'hit' in second_cache.lower() and  # Second must be a hit
             first_response.status_code == 200 and  # Both responses should be successful
-            second_response.status_code == 200
+            second_response.status_code == 200 and
+            first_response.text == second_response.text  # Content should match
         )
 
         return url, is_vulnerable, debug_info
@@ -130,6 +137,7 @@ def main():
         if is_vulnerable:
             print(f"\n[!] VULNERABLE URL FOUND!\n[!] URL: {url}")
             print(f"[!] Cache behavior: {debug_info.get('first_cache')} -> {debug_info.get('second_cache')}")
+            print("[!] Authenticated content leaked to unauthenticated user!")
         elif args.verbose:
             print(f"[+] Tested: {url} | Not vulnerable")
 
