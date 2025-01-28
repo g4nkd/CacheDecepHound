@@ -33,8 +33,8 @@ python cachedecephound.py <URL>
 | Argument               | Description                                                                                  |
 |------------------------|----------------------------------------------------------------------------------------------|
 | `<URL>`               | The target URL to test.                                                                      |
-| `-w`, `--wordlist`     | Path to a custom wordlist for delimiters (default: `/opt/wordlists/portswigger/web-cachedeception-delimeterlist.txt`). |
-| `-e`, `--extensions`   | Comma-separated list of file extensions to test (default: `.js,.css,`).                      |
+| `-w`, `--wordlist`     | Path to a custom wordlist for delimiters (default: `/path/to/wordlist.txt`). |
+| `-e`, `--extensions`   | Comma-separated list of file extensions to test (default: `.js,.css,.png`).                      |
 | `-H`, `--header`       | Add a custom HTTP header in the format `Name: Value`.                                        |
 | `-t`, `--threads`      | Number of threads to use for testing (default: 10).                                          |
 | `-v`, `--verbose`      | Enable verbose output for detailed request/response logging.                                 |
