@@ -101,7 +101,7 @@ def main():
     parser = argparse.ArgumentParser(description='Test for web cache poisoning vulnerabilities')
     parser.add_argument('url', help='Target URL')
     parser.add_argument('-H', '--header', help='Header in format "Name: Value"')
-    parser.add_argument('-w', '--wordlist', help='Path to custom wordlist', default='/opt/wordlists/portswigger/web-cachedeception-delimeterlist.txt')
+    parser.add_argument('-w', '--wordlist', help='Path to custom wordlist', default='/path/to/wordlist.txt')
     parser.add_argument('-e', '--extensions', help='Comma-separated list of extensions to test (default: ".js,.css,.png")', default='.js,.css,.png')
     parser.add_argument('-t', '--threads', type=int, default=10, help='Number of threads to use (default: 10)')
     parser.add_argument('-v', '--verbose', action='store_true', help='Show verbose output')
