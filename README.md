@@ -1,66 +1,65 @@
+Sure! Below is a simple README template for your Gitbook. It provides details about the tool, its usage, and examples.
+
+---
+
 # CacheDecepHound
 
-CacheDecepHound is a Python-based tool designed to identify web cache poisoning vulnerabilities on web servers. It automates the testing of GET URLs using customizable delimiters and extensions, focusing on potential cache poisoning issues, while leveraging multi-threading for fast and efficient scanning.
-
+## Overview
+CacheDecepHound (CDHound) is a Python-based tool designed for identifying web cache poisoning vulnerabilities in web servers. It automates the process of testing potential vulnerabilities through origin server normalization (OSN) and custom delimiters. By leveraging multi-threading, the tool performs efficient scanning to detect caching issues, which may allow attackers to exploit vulnerable caching mechanisms to serve malicious content to users.
 
 ## Features
-- **Custom wordlist support**: Specify your own list of delimiters to test using `-w`.
-- **Configurable extensions**: Define extensions to append to test URLs using `-e`.
-- **Multi-threading**: Speed up the testing process by running multiple URL checks in parallel using `-t`.
-- **Header customization**: Add custom HTTP headers using `-H`.
-- **Verbose mode**: Get detailed output for each request and response with `-v`.
+- **Origin Server Normalization (OSN)** testing.
+- **Custom Delimiters** to test URL path manipulations.
+- **Multi-threading** for faster scans.
+- **Comprehensive Header Support** for authenticated requests.
+- **Verbose Output** for debugging and detailed results.
+- **Configurable Test Parameters** for recursion depth, extensions, and headers.
+
+## Prerequisites
+Before running CacheDecepHound, ensure that you have the following dependencies installed:
+
+- **Python 3.x** or higher.
+- **requests** library: Install with `pip install requests`.
 
 ## Installation
 
-1. Clone the repository:
+To install CacheDecepHound, follow these steps:
+
+1. Clone the repository to your local machine:
    ```bash
-   git clone https://github.com/g4nkd/CacheDecepHound.git
+   git clone https://github.com/yourusername/CacheDecepHound.git
+   ```
+
+2. Navigate to the project directory:
+   ```bash
    cd CacheDecepHound
    ```
 
-2. Install the required dependencies:
+3. Install the required dependencies:
    ```bash
    pip install -r requirements.txt
    ```
 
 ## Usage
 
-### Basic Usage
+### Basic Command Structure
+
+The basic structure of the command is:
+
 ```bash
-python cachedecephound.py <URL>
+python cdhound.py <target_url> [options]
 ```
 
-### Options
-| Argument               | Description                                                                                  |
-|------------------------|----------------------------------------------------------------------------------------------|
-| `<URL>`               | The target URL to test.                                                                      |
-| `-w`, `--wordlist`     | Path to a custom wordlist for delimiters (default: `/path/to/wordlist.txt`). |
-| `-e`, `--extensions`   | Comma-separated list of file extensions to test (default: `.js,.css,.png`).                      |
-| `-H`, `--header`       | Add a custom HTTP header in the format `Name: Value`.                                        |
-| `-t`, `--threads`      | Number of threads to use for testing (default: 10).                                          |
-| `-v`, `--verbose`      | Enable verbose output for detailed request/response logging.                                 |
+### Arguments
 
-### Examples
-
-1. Test a URL with default settings:
-   ```bash
-   python cachedecephound.py https://example.com
-   ```
-
-2. Use a custom wordlist and test with additional extensions:
-   ```bash
-   python cachedecephound.py https://example.com -w /path/to/wordlist.txt -e .html,.php,.json
-   ```
-
-3. Add custom headers and increase the number of threads:
-   ```bash
-   python cachedecephound.py https://example.com -H "X-Test: TestHeader" -t 20
-   ```
-
-4. Enable verbose mode to see detailed output:
-   ```bash
-   python cachedecephound.py https://example.com -v
-   ```
+- **`<target_url>`**: The URL of the target website to test (e.g., `https://example.com`).
+- **`-H` or `--header`**: Add custom headers (e.g., for authentication) in the format `Name: Value`.
+- **`-w` or `--wordlist`**: Path to a custom wordlist for delimiters (default is `/path/to/wordlist.txt`).
+- **`-e` or `--extensions`**: A comma-separated list of file extensions to test (default: `.js,.css,.png`).
+- **`-T` or `--technique`**: Choose testing technique. Options: `osn` (Origin Server Normalization) or `default` (standard behavior).
+- **`-r`**: Recursion depth for OSN testing (1, 2, or 3).
+- **`-v` or `--verbose`**: Show verbose output for debugging.
+- **`-t` or `--threads`**: The number of threads to use (default: 10).
 
 ## Additional Notes
 
@@ -68,12 +67,24 @@ python cachedecephound.py <URL>
 
 - **PortSwigger Wordlist:** You can use the official PortSwigger Web Cache Deception wordlist for delimiters. Download it here: [PortSwigger WCD Delimiter List](https://portswigger.net/web-security/web-cache-deception/wcd-lab-delimiter-list).
 
-## How It Works
+### Examples
 
-1. **Delimiters and Extensions**: The tool generates test URLs by combining the provided delimiters and extensions with the target URL.
-2. **HTTP Requests**: Each generated URL is tested with two requests to observe the `X-Cache` headers and detect cache behavior.
-3. **Vulnerability Detection**: If the first request results in a `miss` and the second in a `hit`, the URL is flagged as potentially vulnerable.
+#### 1. Basic Testing (Standard Delimiters and Extensions)
+```bash
+python cdhound.py https://example.com -w /path/to/wordlist.txt -e .js,.css,.png
+```
 
-## Output
-- **Verbose mode**: Displays detailed information for each request, including the status code and `X-Cache` headers.
-- **Vulnerable URLs**: Clearly highlighted in the output with details about cache behavior.
+#### 2. Testing with OSN (Origin Server Normalization) Technique
+```bash
+python cdhound.py https://example.com -T osn -r 2
+```
+
+#### 3. Adding Custom Headers (e.g., Authentication)
+```bash
+python cdhound.py https://example.com -H "Authorization: Bearer <your_token>"
+```
+
+#### 4. Verbose Output and Multiple Threads
+```bash
+python cdhound.py https://example.com -v -t 20
+```
