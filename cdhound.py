@@ -195,6 +195,12 @@ def check_cache_behavior(url: str, headers: Dict[str, str], verbose: bool = Fals
                 second_response.status_code == 200 and
                 'cache-control' in second_response.headers
             )
+            or
+            (
+                'age' not in first_response.headers and
+                second_response.status_code == 200 and
+                'age' in second_response.headers
+            )
         )
         
         return url, is_vulnerable, debug_info
