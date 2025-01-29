@@ -55,7 +55,7 @@ python cdhound.py <target_url> [options]
 - **`-H` or `--header`**: Add custom headers (e.g., for authentication) in the format `Name: Value`.
 - **`-w` or `--wordlist`**: Path to a custom wordlist for delimiters (default is `/path/to/wordlist.txt`).
 - **`-e` or `--extensions`**: A comma-separated list of file extensions to test (default: `.js,.css,.png`).
-- **`-T` or `--technique`**: Choose testing technique. Options: `osn` (Origin Server Normalization) or `default` (standard behavior).
+- **`-T` or `--technique`**: Choose testing technique. Options: `osn` (Origin Server Normalization), `csn` (Cache Server Normalization) or `default` (standard behavior).
 - **`-r`**: Recursion depth for OSN testing (1, 2, or 3).
 - **`-v` or `--verbose`**: Show verbose output for debugging.
 - **`-t` or `--threads`**: The number of threads to use (default: 10).
