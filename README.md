@@ -7,6 +7,7 @@ Additionally, CacheDecepHound employs discreet web poisoning by randomizing para
 
 ## Features
 - **Origin Server Normalization (OSN)** testing.
+- **Cache Server Normalization (CSN)** testing.
 - **Custom Delimiters** to test URL path manipulations.
 - **Multi-threading** for faster scans.
 - **Comprehensive Header Support** for authenticated requests.
