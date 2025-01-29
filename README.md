@@ -1,7 +1,3 @@
-Sure! Below is a simple README template for your Gitbook. It provides details about the tool, its usage, and examples.
-
----
-
 # CacheDecepHound
 
 ## Overview
