@@ -1,7 +1,7 @@
 # CacheDecepHound
 
 ## Overview
-CacheDecepHound (CDHound) is a Python-based tool designed for identifying web cache poisoning vulnerabilities in web servers. It automates the process of testing potential vulnerabilities through origin server normalization (OSN) and custom delimiters. By leveraging multi-threading, the tool performs efficient scanning to detect caching issues, which may allow attackers to exploit vulnerable caching mechanisms to serve malicious content to users.
+CacheDecepHound is a Python-based tool designed for identifying web cache poisoning vulnerabilities in web servers. It automates the process of testing potential vulnerabilities through origin server normalization (OSN) and custom delimiters. By leveraging multi-threading, the tool performs efficient scanning to detect caching issues, which may allow attackers to exploit vulnerable caching mechanisms to serve malicious content to users.
 
 ## Features
 - **Origin Server Normalization (OSN)** testing.
