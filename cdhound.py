@@ -69,7 +69,7 @@ def extract_static_directories(response_text: str) -> List[str]:
     return [path for path in static_paths if not path.startswith('href=')]
 
 def create_osn_test_urls(base_url: str, static_dirs: List[str], recursion_depth: int) -> List[str]:
-    """Create test URLs for origin server normalization testing."""
+    """Create test URLs for origin server normalization testing, with randomization."""
     parsed_url = urllib.parse.urlparse(base_url)
     original_path = parsed_url.path.strip('/')
     test_urls = []
@@ -78,8 +78,12 @@ def create_osn_test_urls(base_url: str, static_dirs: List[str], recursion_depth:
         parts = static_dir.split('/')
         for i in range(min(recursion_depth, len(parts))):
             path_prefix = '/'.join(parts[:i+1])
+            # Original OSN test URL
             test_url = f"{parsed_url.scheme}://{parsed_url.netloc}/{path_prefix}/..%2f{original_path}"
-            test_urls.append(test_url)
+            # Append random string to the URL
+            random_string = generate_random_chars()  # generate random string
+            test_url_with_randomization = f"{test_url}?{random_string}"
+            test_urls.append(test_url_with_randomization)
 
     return test_urls
 
@@ -120,7 +124,8 @@ def check_cache_behavior(url: str, headers: Dict[str, str]) -> Tuple[str, bool, 
 
         debug_info = {}
 
-        first_response = requests.get(url, headers=request_headers)
+        # Set a 10-second timeout to avoid long request delays
+        first_response = requests.get(url, headers=request_headers, timeout=15) #timeout
         first_cache = first_response.headers.get('X-Cache', '')
         debug_info['first_status'] = first_response.status_code
         debug_info['first_cache'] = first_cache
@@ -130,7 +135,7 @@ def check_cache_behavior(url: str, headers: Dict[str, str]) -> Tuple[str, bool, 
         if 'Cookie' in headers_without_cookies:
             del headers_without_cookies['Cookie']
         
-        second_response = requests.get(url, headers=headers_without_cookies)
+        second_response = requests.get(url, headers=headers_without_cookies, timeout=15) #timeout
         second_cache = second_response.headers.get('X-Cache', '')
         debug_info['second_status'] = second_response.status_code
         debug_info['second_cache'] = second_cache
@@ -147,9 +152,14 @@ def check_cache_behavior(url: str, headers: Dict[str, str]) -> Tuple[str, bool, 
 
         return url, is_vulnerable, debug_info
 
+    except requests.exceptions.Timeout:
+        print(f"\033[33m[!] Timeout: {url} took longer than 15 seconds and was ignored.\033[0m")
+        return url, False, {}
+    
     except requests.exceptions.RequestException as e:
         print(f"Error testing {url}: {str(e)}")
         return url, False, {}
+
 def main():
     
     print_logo()
