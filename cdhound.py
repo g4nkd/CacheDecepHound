@@ -8,6 +8,35 @@ import argparse
 from concurrent.futures import ThreadPoolExecutor
 import re
 
+def print_logo():
+    """Print colorful ASCII art logo."""
+    green = '\033[32m'
+    bright_green = '\033[92m'
+    reset = '\033[0m'
+
+    logo = f"""
+{green}╔══════════════════════════════════════════════════════════════════════════╗
+║                                                                            ║
+║   ██████╗ █████╗  ██████╗██╗  ██╗███████╗██████╗ ███████╗ ██████╗███████╗║
+║  ██╔════╝██╔══██╗██╔════╝██║  ██║██╔════╝██╔══██╗██╔════╝██╔════╝██╔════╝║
+║  ██║     ███████║██║     ███████║█████╗  ██║  ██║█████╗  ██║     █████╗  ║
+║  ██║     ██╔══██║██║     ██╔══██║██╔══╝  ██║  ██║██╔══╝  ██║     ██╔══╝  ║
+║  ╚██████╗██║  ██║╚██████╗██║  ██║███████╗██████╔╝███████╗╚██████╗███████╗║
+║   ╚═════╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝╚══════╝╚═════╝ ╚══════╝ ╚═════╝╚══════╝║
+║                    {bright_green}██╗  ██╗ ██████╗ ██╗   ██╗███╗   ██╗██████╗{green}        ║
+║                    {bright_green}██║  ██║██╔═══██╗██║   ██║████╗  ██║██╔══██╗{green}       ║
+║                    {bright_green}███████║██║   ██║██║   ██║██╔██╗ ██║██║  ██║{green}       ║
+║                    {bright_green}██╔══██║██║   ██║██║   ██║██║╚██╗██║██║  ██║{green}       ║
+║                    {bright_green}██║  ██║╚██████╔╝╚██████╔╝██║ ╚████║██████╔╝{green}       ║
+║                    {bright_green}╚═╝  ╚═╝ ╚═════╝  ╚═════╝ ╚═╝  ╚═══╝╚═════╝{green}        ║
+║                                                                            ║
+║              {bright_green}Web Cache Deception & Poisoning Scanner{green}                    ║
+║                                                                            ║
+╚══════════════════════════════════════════════════════════════════════════╝
+                                                            {bright_green}by gankd{reset}
+"""
+    print(logo)
+
 def read_delimiters(wordlist_path: str) -> List[str]:
     """Read delimiters from wordlist file."""
     try:
@@ -122,6 +151,9 @@ def check_cache_behavior(url: str, headers: Dict[str, str]) -> Tuple[str, bool, 
         print(f"Error testing {url}: {str(e)}")
         return url, False, {}
 def main():
+    
+    print_logo()
+
     parser = argparse.ArgumentParser(description='Test for web cache poisoning vulnerabilities')
     parser.add_argument('url', help='Target URL')
     parser.add_argument('-H', '--header', help='Header in format "Name: Value" -> Used to authenticate the requests')
