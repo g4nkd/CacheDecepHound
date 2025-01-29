@@ -62,11 +62,36 @@ def parse_header(header_str: str) -> Dict[str, str]:
         print(f"[!] Error: Invalid header format. Use 'Name: Value' format")
         sys.exit(1)
 
-def extract_static_directories(response_text: str) -> List[str]:
-    """Extract static resource directories from response body."""
-    static_paths = re.findall(r'/?([^"\'\s<>]+/[^"\'\s<>]+/(?:css|js|images?|static)(?:/[^"\'\s<>]+)*)', response_text)
-    # Filter out any false positives like href=
-    return [path for path in static_paths if not path.startswith('href=')]
+def extract_static_directories(response_text: str, url: str, headers: Dict[str, str]) -> List[str]:
+    """
+    Extract static resource directories from response body and root path.
+    
+    Args:
+        response_text: The response text from the original endpoint
+        url: The original URL to extract base domain
+        headers: Request headers to use
+        
+    Returns:
+        List[str]: List of discovered static directories in the format '/static', '/css', etc.
+    """
+    static_paths = []
+
+    # Extract paths from 'href=' attributes in the response text
+    href_paths_from_response = re.findall(r'href=["\'](\/(?:css|js|images?|static)[^"\'>]*)', response_text)
+    static_paths.extend([path for path in href_paths_from_response if path.startswith(('/', '/static', '/css', '/js'))])
+
+    # Make request to root path
+    try:
+        base_url = urllib.parse.urljoin(url, '/')
+        root_response = requests.get(base_url, headers=headers, timeout=15)
+        href_paths_from_root = re.findall(r'href=["\'](\/(?:css|js|images?|static)[^"\'>]*)', root_response.text)
+        static_paths.extend([path for path in href_paths_from_root if path.startswith(('/', '/static', '/css', '/js'))])
+    except requests.exceptions.RequestException as e:
+        print(f"\033[33m[!] Warning: Could not fetch root path (/): {str(e)}\033[0m")
+    
+    # Remove duplicates while preserving order
+    return list(dict.fromkeys(static_paths))
+
 
 def create_osn_test_urls(base_url: str, static_dirs: List[str], recursion_depth: int) -> List[str]:
     """Create test URLs for origin server normalization testing, with randomization."""
@@ -156,14 +181,22 @@ def check_cache_behavior(url: str, headers: Dict[str, str], verbose: bool = Fals
         debug_info['second_body'] = second_response.text
 
         is_vulnerable = (
-            first_cache and second_cache and
-            'miss' in first_cache.lower() and
-            'hit' in second_cache.lower() and
-            first_response.status_code == 200 and
-            second_response.status_code == 200 and
-            first_response.text == second_response.text
+            (
+                first_cache and second_cache and
+                'miss' in first_cache.lower() and
+                'hit' in second_cache.lower() and
+                first_response.status_code == 200 and
+                second_response.status_code == 200 and
+                first_response.text == second_response.text
+            )
+            or
+            (
+                'cache-control' not in first_response.headers and
+                second_response.status_code == 200 and
+                'cache-control' in second_response.headers
+            )
         )
-
+        
         return url, is_vulnerable, debug_info
 
     except requests.exceptions.Timeout:
@@ -201,10 +234,10 @@ def main():
         if not args.r:
             print(f"[!] Error: When using '-T {args.technique}', you must specify the recursion depth with '-r' (1,2 or 3).")
             sys.exit(1)
-
+        
         try:
             initial_response = requests.get(args.url, headers=headers)
-            static_dirs = extract_static_directories(initial_response.text)
+            static_dirs = extract_static_directories(initial_response.text, args.url, headers)
             if static_dirs:
                 print(f"\033[32m[*] Found {len(static_dirs)} static resource directories:\033[0m")
                 for dir in static_dirs:
@@ -214,7 +247,7 @@ def main():
                     print(f"[*] Testing origin server normalization with recursion depth: {args.r}")
                     test_urls = create_osn_test_urls(args.url, static_dirs, args.r)
                 else:  # csn technique
-                    print(f"[*] Testing semi-static normalization with recursion depth: {args.r}")
+                    print(f"[*] Testing cache server normalization with recursion depth: {args.r}")
                     delimiters = read_delimiters(args.wordlist)
                     print(f"[*] Loaded {len(delimiters)} delimiters from wordlist")
                     test_urls = create_csn_test_urls(args.url, static_dirs, delimiters, args.r)
