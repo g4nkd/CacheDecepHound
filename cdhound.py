@@ -25,7 +25,7 @@ def print_logo():
 ║   ╚═════╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝╚══════╝╚═════╝ ╚══════╝ ╚═════╝╚══════╝║
 ║                    {bright_green}██╗  ██╗ ██████╗ ██╗   ██╗███╗   ██╗██████╗{green}        ║
 ║                    {bright_green}██║  ██║██╔═══██╗██║   ██║████╗  ██║██╔══██╗{green}       ║
-║                    {bright_green}███████║██║   ██║██║   ██║██╔██╗ ██║██║  ██║{green}       ║
+║                    {bright_green}███████║██║   ██║██║   ██║██║  ██║██║  ██║{green}       ║
 ║                    {bright_green}██╔══██║██║   ██║██║   ██║██║╚██╗██║██║  ██║{green}       ║
 ║                    {bright_green}██║  ██║╚██████╔╝╚██████╔╝██║ ╚████║██████╔╝{green}       ║
 ║                    {bright_green}╚═╝  ╚═╝ ╚═════╝  ╚═════╝ ╚═╝  ╚═══╝╚═════╝{green}        ║
@@ -63,81 +63,126 @@ def parse_header(header_str: str) -> Dict[str, str]:
         sys.exit(1)
 
 def extract_static_directories(response_text: str, url: str, headers: Dict[str, str]) -> List[str]:
-    """
-    Extract static resource directories from response body and root path.
+    """Extract static resource directories from response body and root path."""
+    static_dirs = set()
+    pattern = r'(?:href|src|action|link\s+href|script\s+src|img\s+src)\s*=\s*["]?(/[\w\-/]+(?:\.\w+)?)'
+    paths = re.findall(pattern, response_text)
     
-    Args:
-        response_text: The response text from the original endpoint
-        url: The original URL to extract base domain
-        headers: Request headers to use
-        
-    Returns:
-        List[str]: List of discovered static directories in the format '/static', '/css', etc.
-    """
-    static_paths = []
-
-    # Extract paths from 'href=' attributes in the response text
-    href_paths_from_response = re.findall(r'href=["\'](\/(?:css|js|images?|static)[^"\'>]*)', response_text)
-    static_paths.extend([path for path in href_paths_from_response if path.startswith(('/', '/static', '/css', '/js'))])
-
-    # Make request to root path
+    for path in paths:
+        components = [p for p in path.split('/') if p]
+        if not components:
+            continue
+            
+        if '.' in components[-1]:
+            components = components[:-1]
+            
+        current_path = ''
+        for component in components:
+            current_path = f"{current_path}/{component}"
+            if any(keyword in current_path.lower() for keyword in ['static', 'css', 'js', 'images', 'img', 'assets']):
+                static_dirs.add(current_path)
+    
     try:
         base_url = urllib.parse.urljoin(url, '/')
         root_response = requests.get(base_url, headers=headers, timeout=15)
-        href_paths_from_root = re.findall(r'href=["\'](\/(?:css|js|images?|static)[^"\'>]*)', root_response.text)
-        static_paths.extend([path for path in href_paths_from_root if path.startswith(('/', '/static', '/css', '/js'))])
+        root_paths = re.findall(pattern, root_response.text)
+        
+        for path in root_paths:
+            components = [p for p in path.split('/') if p]
+            if not components:
+                continue
+                
+            if '.' in components[-1]:
+                components = components[:-1]
+                
+            current_path = ''
+            for component in components:
+                current_path = f"{current_path}/{component}"
+                if any(keyword in current_path.lower() for keyword in ['static', 'css', 'js', 'images', 'img', 'assets']):
+                    static_dirs.add(current_path)
+                    
     except requests.exceptions.RequestException as e:
         print(f"\033[33m[!] Warning: Could not fetch root path (/): {str(e)}\033[0m")
     
-    # Remove duplicates while preserving order
-    return list(dict.fromkeys(static_paths))
-
+    return sorted(list(static_dirs))
 
 def create_osn_test_urls(base_url: str, static_dirs: List[str], recursion_depth: int) -> List[str]:
-    """Create test URLs for origin server normalization testing, with randomization."""
+    """Create test URLs for origin server normalization testing."""
     parsed_url = urllib.parse.urlparse(base_url)
     original_path = parsed_url.path.strip('/')
     test_urls = []
 
-    for static_dir in static_dirs:
-        parts = static_dir.split('/')
-        for i in range(min(recursion_depth, len(parts))):
-            path_prefix = '/'.join(parts[:i+1])
+    random_string = generate_random_chars()
+    root_url = f"{parsed_url.scheme}://{parsed_url.netloc}/..%2f{original_path}?{random_string}"
+    test_urls.append(root_url)
+
+    if recursion_depth == 1:
+        base_dirs = set()
+        for static_dir in static_dirs:
+            parts = [p for p in static_dir.split('/') if p]
+            if parts:
+                base_dirs.add(parts[0])
+        
+        for base_dir in base_dirs:
             random_string = generate_random_chars()
-            test_url = f"{parsed_url.scheme}://{parsed_url.netloc}/{path_prefix}/..%2f{original_path}?{random_string}"
+            test_url = f"{parsed_url.scheme}://{parsed_url.netloc}/{base_dir}/..%2f{original_path}?{random_string}"
             test_urls.append(test_url)
+    else:
+        for static_dir in static_dirs:
+            parts = [p for p in static_dir.split('/') if p]
+            current_path = ""
+            
+            for i in range(min(recursion_depth, len(parts))):
+                current_path = '/'.join(parts[:i+1])
+                random_string = generate_random_chars()
+                test_url = f"{parsed_url.scheme}://{parsed_url.netloc}/{current_path}/..%2f{original_path}?{random_string}"
+                if test_url not in test_urls:
+                    test_urls.append(test_url)
 
     return test_urls
 
 def create_csn_test_urls(base_url: str, static_dirs: List[str], delimiters: List[str], recursion_depth: int) -> List[str]:
-    """Create test URLs for semi-static normalization testing with randomization."""
+    """Create test URLs for client-side normalization testing."""
     parsed_url = urllib.parse.urlparse(base_url)
     original_path = parsed_url.path.strip('/')
     test_urls = []
 
+    base_dirs = set()
     for static_dir in static_dirs:
-        parts = static_dir.split('/')
-        for i in range(min(recursion_depth, len(parts))):
-            path_prefix = '/'.join(parts[:i+1])
-            for delimiter in delimiters:
-                random_chars = generate_random_chars()
-                test_url = f"{parsed_url.scheme}://{parsed_url.netloc}/{original_path}{delimiter}%2f%2e%2e%2f{path_prefix}?{random_chars}"
-                test_urls.append(test_url)
+        parts = [p for p in static_dir.split('/') if p]
+        if parts:
+            for i in range(min(recursion_depth, len(parts))):
+                base_dirs.add('/'.join(parts[:i+1]))
+
+    for base_dir in base_dirs:
+        for delimiter in delimiters:
+            random_chars = generate_random_chars()
+            test_url = f"{parsed_url.scheme}://{parsed_url.netloc}/{original_path}{delimiter}%2f%2e%2e%2f{base_dir}?{random_chars}"
+            test_urls.append(test_url)
 
     return test_urls
 
 def create_test_urls(base_url: str, delimiters: List[str], extensions: List[str]) -> List[str]:
-    """Create test URLs with different delimiters and extensions."""
+    """Create test URLs combining delimiters and extensions."""
     urls = []
-
+    parsed_url = urllib.parse.urlparse(base_url)
+    path = parsed_url.path.rstrip('/')
+    
+    # Use default delimiters if none provided
+    if not delimiters:
+        delimiters = ['/', '!', ';', ',', ':', '|', '#']
+    
+    # Test each combination of delimiter and extension
     for delimiter in delimiters:
         for ext in extensions:
             random_chars = generate_random_chars()
-            parsed_url = urllib.parse.urlparse(base_url)
-            path = parsed_url.path.rstrip('/')
-
-            new_path = f"{path}{delimiter}{random_chars}{ext}"
-
+            
+            # Create path with delimiter
+            if delimiter == '/':
+                new_path = f"{path}/{random_chars}{ext}"
+            else:
+                new_path = f"{path}{delimiter}{random_chars}{ext}"
+            
             new_url = urllib.parse.urlunparse((
                 parsed_url.scheme,
                 parsed_url.netloc,
@@ -150,11 +195,8 @@ def create_test_urls(base_url: str, delimiters: List[str], extensions: List[str]
 
     return urls
 
-def check_cache_behavior(url: str, headers: Dict[str, str], verbose: bool = False) -> Tuple[str, bool, Dict]:
-    """
-    Check if URL is vulnerable to cache poisoning.
-    Returns (URL, is_vulnerable, debug_info)
-    """
+def check_cache_behavior(url: str, headers: Dict[str, str], verbose: bool = False) -> Tuple[str, bool, Dict, bool]:
+    """Check if URL is vulnerable to cache poisoning."""
     try:
         request_headers = {
             'User-Agent': 'r4nd0m'
@@ -163,7 +205,6 @@ def check_cache_behavior(url: str, headers: Dict[str, str], verbose: bool = Fals
 
         debug_info = {}
 
-        # Set a 15-second timeout to avoid long request delays
         first_response = requests.get(url, headers=request_headers, timeout=15)
         first_cache = first_response.headers.get('X-Cache', '')
         debug_info['first_status'] = first_response.status_code
@@ -201,19 +242,32 @@ def check_cache_behavior(url: str, headers: Dict[str, str], verbose: bool = Fals
                 second_response.status_code == 200 and
                 'age' in second_response.headers
             )
+            and
+            (
+               first_response.headers.get('Content-Length') == second_response.headers.get('Content-Length')
+            )
         )
         
-        return url, is_vulnerable, debug_info
+        return url, is_vulnerable, debug_info, False
 
     except requests.exceptions.Timeout:
         if verbose:
-            print(f"\033[33m[!] Timeout: {url} took longer than 15 seconds and was ignored.\033[0m")
-        return url, False, {}
+            print(f"[+] Tested: {url} | Not vulnerable")
+        return url, False, {}, True
     
     except requests.exceptions.RequestException as e:
         if verbose:
-            print(f"Error testing {url}: {str(e)}")
-        return url, False, {}
+            print(f"[+] Tested: {url} | Not vulnerable")
+        return url, False, {}, False
+
+def get_technique_description(technique: str) -> str:
+    """Return a description of each testing technique."""
+    descriptions = {
+        'default': "Testing for basic cache poisoning using different file extensions",
+        'osn': "Origin Server Normalization - Testing path traversal via static resource directories",
+        'csn': "Client-Side Normalization - Testing path traversal with delimiters and static resources",
+    }
+    return descriptions.get(technique, "Unknown technique")
 
 def main():
     print_logo()
@@ -221,10 +275,10 @@ def main():
     parser = argparse.ArgumentParser(description='Test for web cache poisoning vulnerabilities')
     parser.add_argument('url', help='Target URL')
     parser.add_argument('-H', '--header', help='Header in format "Name: Value" -> Used to authenticate the requests')
-    parser.add_argument('-w', '--wordlist', help='Path to custom wordlist', default='/path/to/wordlist.txt')
+    parser.add_argument('-w', '--wordlist', help='Path to custom wordlist', default=None)
     parser.add_argument('-e', '--extensions', help='Comma-separated list of extensions to test (default: ".js,.css,.png")', default='.js,.css,.png')
-    parser.add_argument('-T', '--technique', choices=['osn', 'csn', 'default'], help='Recognition technique (default: standard behavior). If "osn", tests Exploiting origin server normalization. If "csn", tests cache server normalization.')
-    parser.add_argument('-r', type=int, choices=[1, 2, 3], help='Recursion depth for OSN/SSN testing (1,2 or 3)')
+    parser.add_argument('-T', '--technique', choices=['osn', 'csn', 'default'], help='Specific technique to run')
+    parser.add_argument('-r', type=int, choices=[1, 2, 3], help='Recursion depth for OSN/CSN testing (default: 1)', default=1)
     parser.add_argument('-v', '--verbose', action='store_true', help='Show verbose output')
     parser.add_argument('-t', '--threads', type=int, default=10, help='Number of threads to use (default: 10)')
     args = parser.parse_args()
@@ -236,55 +290,82 @@ def main():
     print(f"\n[*] Testing cache behavior for: {args.url}")
     print(f"[*] Using headers: {headers}")
 
-    if args.technique in ['osn', 'csn']:
-        if not args.r:
-            print(f"[!] Error: When using '-T {args.technique}', you must specify the recursion depth with '-r' (1,2 or 3).")
-            sys.exit(1)
+    techniques_to_run = [args.technique] if args.technique else ['default', 'osn', 'csn']
+    recursion_depth = args.r
+    static_dirs = None
+
+    total_techniques = len(techniques_to_run)
+    current_technique = 0
+
+    for technique in techniques_to_run:
+        current_technique += 1
+        print(f"\n{'='*60}")
+        print(f"[*] Starting Technique {current_technique}/{total_techniques}: {technique.upper()}")
+        print(f"[*] Description: {get_technique_description(technique)}")
+        print(f"{'='*60}")
+
+        test_urls = []
         
-        try:
-            initial_response = requests.get(args.url, headers=headers)
-            static_dirs = extract_static_directories(initial_response.text, args.url, headers)
+        if technique == 'default':
+            extensions = [ext.strip() for ext in args.extensions.split(',') if ext.strip()]
+            delimiters = read_delimiters(args.wordlist) if args.wordlist else []
+            print(f"[*] Using extensions: {extensions}")
+            if delimiters:
+                print(f"[*] Using {len(delimiters)} delimiters from wordlist")
+            test_urls = create_test_urls(args.url, delimiters, extensions)
+        
+        elif technique in ['osn', 'csn']:
+            if static_dirs is None:
+                try:
+                    print("[*] Fetching static resource directories...")
+                    initial_response = requests.get(args.url, headers=headers)
+                    static_dirs = extract_static_directories(initial_response.text, args.url, headers)
+                    if static_dirs:
+                        print("[*] Found static resource directories:")
+                        for dir in static_dirs:
+                            print(f"   - {dir}")
+                except requests.exceptions.RequestException as e:
+                    print(f"[!] Error making initial request: {str(e)}")
+                    continue
+
             if static_dirs:
-                print(f"\033[32m[*] Found {len(static_dirs)} static resource directories:\033[0m")
-                for dir in static_dirs:
-                    print(f"   - {dir}")
-                
-                if args.technique == 'osn':
-                    print(f"[*] Testing origin server normalization with recursion depth: {args.r}")
-                    test_urls = create_osn_test_urls(args.url, static_dirs, args.r)
+                if technique == 'osn':
+                    print(f"[*] Generating OSN test URLs with recursion depth {recursion_depth}...")
+                    test_urls = create_osn_test_urls(args.url, static_dirs, recursion_depth)
                 else:  # csn technique
-                    print(f"[*] Testing cache server normalization with recursion depth: {args.r}")
                     delimiters = read_delimiters(args.wordlist)
                     print(f"[*] Loaded {len(delimiters)} delimiters from wordlist")
-                    test_urls = create_csn_test_urls(args.url, static_dirs, delimiters, args.r)
-            else:
-                print("[!] No static resource directories found")
-                test_urls = []
-        except requests.exceptions.RequestException as e:
-            print(f"[!] Error making initial request: {str(e)}")
-            sys.exit(1)
-    else:  # Default technique
-        delimiters = read_delimiters(args.wordlist)
-        extensions = [ext.strip() for ext in args.extensions.split(',') if ext.strip()]
-        print(f"[*] Loaded {len(delimiters)} delimiters from wordlist")
-        print(f"[*] Using {len(extensions)} extensions: {extensions}")
-        test_urls = create_test_urls(args.url, delimiters, extensions)
+                    print(f"[*] Generating CSN test URLs with recursion depth {recursion_depth}...")
+                    test_urls = create_csn_test_urls(args.url, static_dirs, delimiters, recursion_depth)
 
-    print(f"\033[32m[*] Generated {len(test_urls)} test URLs\033[0m")
-    print("-" * 60)
+        if test_urls:
+            print(f"[*] Testing {len(test_urls)} URLs for {technique.upper()} technique")
+            print("-" * 60)
 
-    def process_url(url):
-        url, is_vulnerable, debug_info = check_cache_behavior(url, headers, args.verbose)
-        if is_vulnerable:
-            print(f"\033[32m[!] VULNERABLE URL FOUND!\033[0m")
-            print(f"\033[32m[!] URL: {url}\033[0m")
-            print(f"[!] Cache behavior: {debug_info.get('first_cache')} -> {debug_info.get('second_cache')}")
-            print("[!] Authenticated content leaked to unauthenticated user!")
-        elif args.verbose:
-            print(f"[+] Tested: {url} | Not vulnerable")
+            timeout_count = 0
+            with ThreadPoolExecutor(max_workers=args.threads) as executor:
+                futures = []
+                for url in test_urls:
+                    futures.append(executor.submit(check_cache_behavior, url, headers, args.verbose))
+                
+                for future in futures:
+                    url, is_vulnerable, debug_info, had_timeout = future.result()
+                    if had_timeout:
+                        timeout_count += 1
+                    if is_vulnerable:
+                        print(f"\n\033[32m[!] VULNERABLE URL FOUND!\033[0m")
+                        print(f"\033[32m[!] URL: {url}\033[0m")
+                        print(f"[!] Cache behavior: {debug_info.get('first_cache')} -> {debug_info.get('second_cache')}")
+                        print("[!] Authenticated content leaked to unauthenticated user!")
+                    elif args.verbose:
+                        print(f"[+] Tested: {url} | Not vulnerable")
 
-    with ThreadPoolExecutor(max_workers=args.threads) as executor:
-        executor.map(process_url, test_urls)
+            print(f"\n[*] Completed {technique.upper()} technique scan ({current_technique}/{total_techniques})")
+            
+            if timeout_count > 0:
+                print(f"\033[33m[!] Warning: {timeout_count} requests timed out during the scan (timeout=15s)\033[0m")
+        else:
+            print(f"[!] No test URLs were generated for {technique.upper()} technique")
 
 if __name__ == "__main__":
     main()
