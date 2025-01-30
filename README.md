@@ -68,12 +68,12 @@ python cdhound.py <target_url> [options]
 
 ### Examples
 
-#### 1. Basic Testing (Standard Delimiters and Extensions)
+#### 1. Basic Testing (Standard Delimiters, Extensions, OSN and CSN)
 ```bash
 python cdhound.py https://example.com -w /path/to/wordlist.txt -e .js,.css,.png
 ```
 
-#### 2. Testing with OSN (Origin Server Normalization) Technique
+#### 2. Testing only with OSN (Origin Server Normalization) Technique
 ```bash
 python cdhound.py https://example.com -T osn -r 2
 ```
