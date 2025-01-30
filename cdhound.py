@@ -164,6 +164,24 @@ def create_csn_test_urls(base_url: str, static_dirs: Set[str], delimiters: List[
 
     return test_urls
 
+def create_file_cache_test_urls(base_url: str, delimiters: List[str]) -> Set[str]:
+    """Create test URLs for file name cache rule exploitation with delimiters and random query strings."""
+    parsed_url = urllib.parse.urlparse(base_url)
+    test_urls = set()
+
+    # Common files to test
+    common_files = ['robots.txt', 'index.html', 'favicon.ico']
+
+    for file in common_files:
+        for delimiter in delimiters:
+            # Generate a random query string
+            random_query = generate_random_chars()
+            # Create the test URL with delimiter and path traversal
+            test_url = f"{parsed_url.scheme}://{parsed_url.netloc}/my-account{delimiter}%2f%2e%2e%2f{file}?{random_query}"
+            test_urls.add(test_url)
+
+    return test_urls
+
 def create_test_urls(base_url: str, delimiters: List[str], extensions: List[str]) -> Set[str]:
     """Create test URLs combining delimiters and extensions."""
     urls = set()
@@ -255,9 +273,9 @@ def main():
     parser = argparse.ArgumentParser(description='Test for web cache poisoning vulnerabilities.')
     parser.add_argument('url', help='Target URL')
     parser.add_argument('-H', '--header', help='Header in format "Name: Value" -> Used to authenticate requests')
-    parser.add_argument('-w', '--wordlist', help='Path to custom wordlist', default=None)
+    parser.add_argument('-w', '--wordlist', help='Path to custom delimeters wordlist', default=None)
     parser.add_argument('-e', '--extensions', help='Comma-separated list of extensions to test (default: ".js,.css,.png")', default='.js,.css,.png')
-    parser.add_argument('-T', '--technique', choices=['osn', 'csn', 'default'], help='Specific technique to run')
+    parser.add_argument('-T', '--technique', choices=['osn', 'csn', 'default', 'file-cache'], help='Specific technique to run')
     parser.add_argument('-r', type=int, choices=[1, 2, 3], help='Recursion depth for OSN/CSN testing (default: 1)', default=1)
     parser.add_argument('-v', '--verbose', action='store_true', help='Show verbose output')
     parser.add_argument('-t', '--threads', type=int, default=MAX_THREADS, help=f'Number of threads to use (default: {MAX_THREADS})')
@@ -280,7 +298,7 @@ def main():
     if proxies:
         print(f"[*] Using proxy: {args.proxy}")
 
-    techniques_to_run = [args.technique] if args.technique else ['default', 'osn', 'csn']
+    techniques_to_run = [args.technique] if args.technique else ['default', 'osn', 'csn', 'file-cache']
     recursion_depth = args.r
     static_dirs = None
 
@@ -328,6 +346,12 @@ def main():
                     print(f"[*] Generating CSN test URLs with recursion depth {recursion_depth}...")
                     test_urls = create_csn_test_urls(args.url, static_dirs, delimiters, recursion_depth)
 
+        elif technique == 'file-cache':
+            print("[*] Generating test URLs for file name cache rule exploitation...")
+            delimiters = read_delimiters(args.wordlist) if args.wordlist else DEFAULT_DELIMITERS
+            print(f"[*] Using {len(delimiters)} delimiters")
+            test_urls = create_file_cache_test_urls(args.url, delimiters)
+        
         if test_urls:
             print(f"[*] Testing {len(test_urls)} URLs for {technique.upper()} technique")
             print("-" * 60)
@@ -369,6 +393,7 @@ def get_technique_description(technique: str) -> str:
         'default': "Testing for basic cache poisoning using different file extensions",
         'osn': "Origin Server Normalization - Testing path traversal via static resource directories",
         'csn': "Client-Side Normalization - Testing path traversal with delimiters and static resources",
+        'file-cache': "Exploiting file name cache rules by testing common files with path traversal sequences",
     }
     return descriptions.get(technique, "Unknown technique")
 
