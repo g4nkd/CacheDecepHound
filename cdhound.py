@@ -170,7 +170,7 @@ def create_file_cache_test_urls(base_url: str, delimiters: List[str]) -> Set[str
     test_urls = set()
 
     # Common files to test
-    common_files = ['robots.txt', 'index.html', 'favicon.ico']
+    common_files = ['robots.txt', 'index.html', 'index.php', 'sitemap.xml', 'favicon.ico', '404.html']
 
     for file in common_files:
         for delimiter in delimiters:
