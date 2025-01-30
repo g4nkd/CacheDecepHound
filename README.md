@@ -62,6 +62,8 @@ python cdhound.py <target_url> [options]
 
 ## Additional Notes
 
+- **Warning:** The default scan may generate excessive noise and could potentially crash the application. You can specify a scanning technique and reduce the number of threads to enable a more stealthy scan.
+  
 - **Targeting User-Specific URLs:** It is highly recommended to test URLs that include user-specific information, such as `/profile`, `/dashboard`, or other personalized routes. These URLs are more likely to reveal cache poisoning vulnerabilities due to their dynamic content.
 
 - **PortSwigger Wordlist:** You can use the official PortSwigger Web Cache Deception wordlist for delimiters. Download it here: [PortSwigger WCD Delimiter List](https://portswigger.net/web-security/web-cache-deception/wcd-lab-delimiter-list).
