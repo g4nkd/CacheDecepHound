@@ -1,7 +1,5 @@
 # CacheDecepHound
 
-![CacheDecepHound Logo](https://via.placeholder.com/150) <!-- Add a logo if available -->
-
 **CacheDecepHound** is a Python-based tool designed to identify **web cache deception vulnerabilities** in web servers. It automates the process of testing potential vulnerabilities through **Origin Server Normalization (OSN)** and **Client-Side Normalization (CSN)** techniques. By leveraging multi-threading, the tool performs efficient scanning to detect caching issues, which may allow attackers to exploit vulnerable caching mechanisms and serve malicious content to users.
 
 Additionally, CacheDecepHound employs **discreet web poisoning** by randomizing parameters during tests to avoid detection and minimize the impact on the site's traffic.
