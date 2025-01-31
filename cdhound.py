@@ -270,12 +270,25 @@ def check_cache_behavior(url: str, headers: Dict[str, str], proxies: Dict[str, s
 def main():
     print_logo()
 
-    parser = argparse.ArgumentParser(description='Test for web cache poisoning vulnerabilities.')
+    parser = argparse.ArgumentParser(
+        description='Test for web cache poisoning vulnerabilities.',
+        formatter_class=argparse.RawTextHelpFormatter  # Preserves formatting in help text
+    )
     parser.add_argument('url', help='Target URL')
     parser.add_argument('-H', '--header', help='Header in format "Name: Value" -> Used to authenticate requests')
-    parser.add_argument('-w', '--wordlist', help='Path to custom delimeters wordlist', default=None)
+    parser.add_argument('-w', '--wordlist', help='Path to custom delimiters wordlist', default=None)
     parser.add_argument('-e', '--extensions', help='Comma-separated list of extensions to test (default: ".js,.css,.png")', default='.js,.css,.png')
-    parser.add_argument('-T', '--technique', choices=['osn', 'csn', 'default', 'file-cache'], help='Specific technique to run')
+    parser.add_argument(
+        '-T', '--technique',
+        choices=['pd', 'osn', 'csn', 'fncr'],
+        help="""
+Specific technique to run:
+  pd   - Identify Path Delimiters for web cache deception
+  osn  - Identify Origin Server Normalization for web cache deception
+  csn  - Identify Cache Server Normalization for web cache deception
+  fncr - Identify File Name Cache Rules for web cache deception
+"""
+    )
     parser.add_argument('-r', type=int, choices=[1, 2, 3], help='Recursion depth for OSN/CSN testing (default: 1)', default=1)
     parser.add_argument('-v', '--verbose', action='store_true', help='Show verbose output')
     parser.add_argument('-t', '--threads', type=int, default=MAX_THREADS, help=f'Number of threads to use (default: {MAX_THREADS})')
