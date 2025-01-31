@@ -306,12 +306,10 @@ Specific technique to run:
             'https': args.proxy
         }
 
-    print(f"\n[*] Testing cache behavior for: {args.url}")
-    print(f"[*] Using headers: {headers}")
     if proxies:
         print(f"[*] Using proxy: {args.proxy}")
 
-    techniques_to_run = [args.technique] if args.technique else ['default', 'osn', 'csn', 'file-cache']
+    techniques_to_run = [args.technique] if args.technique else ['default', 'osn', 'csn', 'fncr']
     recursion_depth = args.r
     static_dirs = None
 
@@ -359,7 +357,7 @@ Specific technique to run:
                     print(f"[*] Generating CSN test URLs with recursion depth {recursion_depth}...")
                     test_urls = create_csn_test_urls(args.url, static_dirs, delimiters, recursion_depth)
 
-        elif technique == 'file-cache':
+        elif technique == 'fncr':
             print("[*] Generating test URLs for file name cache rule exploitation...")
             delimiters = read_delimiters(args.wordlist) if args.wordlist else DEFAULT_DELIMITERS
             print(f"[*] Using {len(delimiters)} delimiters")
@@ -406,7 +404,7 @@ def get_technique_description(technique: str) -> str:
         'default': "Testing for basic cache poisoning using different file extensions",
         'osn': "Origin Server Normalization - Testing path traversal via static resource directories",
         'csn': "Client-Side Normalization - Testing path traversal with delimiters and static resources",
-        'file-cache': "Exploiting file name cache rules by testing common files with path traversal sequences",
+        'fncr': "Exploiting file name cache rules by testing common files with path traversal sequences",
     }
     return descriptions.get(technique, "Unknown technique")
 
