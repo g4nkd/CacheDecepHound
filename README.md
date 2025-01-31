@@ -86,51 +86,6 @@ CSN is the inverse of OSN. It exploits cases where the cache normalizes URL path
 
 This technique targets cache rules that are based on specific file names (e.g., `robots.txt`, `index.html`). By appending these file names to dynamic URLs, an attacker can cause the cache to store and serve dynamic content as if it were a static file.
 
-## Detection of Cached Responses
-
-The tool checks for cached responses by examining response headers and response times. Key headers to look for include:
-
-- **X-Cache**: Indicates whether the response was served from the cache.
-  - `X-Cache: hit` - The response was served from the cache.
-  - `X-Cache: miss` - The response was fetched from the origin server.
-  - `X-Cache: dynamic` - The content was dynamically generated and is not suitable for caching.
-  - `X-Cache: refresh` - The cached content was outdated and needed to be refreshed.
-
-- **Cache-Control**: May include directives like `public` with a `max-age` higher than 0, indicating that the resource is cacheable.
-
-Additionally, a significant difference in response time for the same request may indicate that the faster response is served from the cache.
-
-## Exploitation of Static Extension Cache Rules
-
-Cache rules often target static resources by matching common file extensions like `.css` or `.js`. If there are discrepancies in how the cache and origin server map the URL path to resources, an attacker may be able to craft a request for a dynamic resource with a static extension that is ignored by the origin server but viewed by the cache.
-
-## Path Mapping Discrepancies
-
-URL path mapping is the process of associating URL paths with resources on a server. Discrepancies in how the cache and origin server map the URL path to resources can result in web cache deception vulnerabilities. For example:
-
-- **Traditional URL Mapping**: Represents a direct path to a resource located on the file system (e.g., `/path/in/filesystem/resource.html`).
-- **RESTful URL Mapping**: Abstracts file paths into logical parts of the API (e.g., `/path/resource/param1/param2`).
-
-If the cache uses traditional URL mapping while the origin server uses RESTful mapping, an attacker can exploit this discrepancy to cache sensitive information.
-
-## Delimiter Discrepancies
-
-Delimiters specify boundaries between different elements in URLs. Discrepancies in how the cache and origin server use characters and strings as delimiters can result in web cache deception vulnerabilities. For example:
-
-- **Java Spring Framework**: Uses `;` as a delimiter for matrix variables.
-- **Ruby on Rails**: Uses `.` as a delimiter to specify the response format.
-
-If the cache does not recognize these delimiters, an attacker can craft a URL that is interpreted differently by the cache and the origin server.
-
-## Normalization Discrepancies
-
-Normalization involves converting various representations of URL paths into a standardized format. Discrepancies in how the cache and origin server normalize the URL can enable an attacker to construct a path traversal payload that is interpreted differently by each parser. For example:
-
-- **Origin Server Normalization**: Decodes encoded characters and resolves dot-segments.
-- **Cache Normalization**: Does not decode encoded characters or resolve dot-segments.
-
-By exploiting these discrepancies, an attacker can cause the cache to store and serve sensitive information.
-
 ---
 
 For more information on web cache poisoning and deception, refer to the [PortSwigger Web Security Academy](https://portswigger.net/web-security/web-cache-poisoning) and [Gotta Cache ‘em all bending the rules of web cache exploitation](https://www.youtube.com/watch?v=70yyOMFylUA).
