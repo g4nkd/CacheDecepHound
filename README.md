@@ -72,7 +72,7 @@ Additionally, CacheDecepHound employs **discreet web poisoning** by randomizing 
 
 ### Path Delimiter Testing (`pd`)
 
-This technique tests for discrepancies in how delimiters (e.g., `;`, `,`, `#`) are interpreted by the origin server and the cache. If the origin server treats a character as a delimiter but the cache does not, it may be possible to craft a URL that is interpreted differently by each, leading to cache poisoning.
+This technique tests for discrepancies in how delimiters (e.g., `;`, `,`, `#`) are interpreted by the origin server and the cache. If the origin server treats a character as a delimiter but the cache does not, it may be possible to craft a URL that is interpreted differently by each, leading to cache deception.
 
 ### Origin Server Normalization (OSN)
 
