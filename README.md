@@ -50,22 +50,22 @@ Additionally, CacheDecepHound employs **discreet web poisoning** by randomizing 
 
 1. **Basic Test with Default Settings**:
    ```bash
-   python cache_poisoning_tool.py https://example.com
+   python cdhound.py https://example.com
    ```
 
 2. **Test with Custom Delimiters and Extensions**:
    ```bash
-   python cache_poisoning_tool.py https://example.com -w delimiters.txt -e .js,.css,.html
+   python cdhound.py https://example.com -w delimiters.txt -e .js,.css,.html
    ```
 
 3. **Test with Specific Technique (OSN)**:
    ```bash
-   python cache_poisoning_tool.py https://example.com -T osn -r 2
+   python cdhound.py https://example.com -T osn -r 2
    ```
 
 4. **Test with Proxy and Verbose Output**:
    ```bash
-   python cache_poisoning_tool.py https://example.com -p http://127.0.0.1:8080 -v
+   python cdhound.py https://example.com -p http://127.0.0.1:8080 -v
    ```
 
 ## Techniques Explained
