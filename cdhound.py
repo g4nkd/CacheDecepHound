@@ -15,7 +15,7 @@ from tqdm import tqdm
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
 # Constants
-DEFAULT_DELIMITERS = ['/', '!', ';', ',', ':', '|', '#']
+DEFAULT_DELIMITERS = ['/', '!', ';', ',', ':', '|', '#', '?']
 DEFAULT_EXTENSIONS = ['.js', '.css', '.png', '.jpg', '.html']
 MAX_THREADS = 10
 REQUEST_TIMEOUT = 15
