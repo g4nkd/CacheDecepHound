@@ -6,7 +6,7 @@ Additionally, CacheDecepHound employs **discreet web poisoning** by randomizing 
 
 ## Features
 
-- **Path Delimiter Testing**: Identifies discrepancies in how delimiters are interpreted by the origin server and the cache.
+- **Path Delimiter Testing (PD)**: Identifies discrepancies in how delimiters are interpreted by the origin server and the cache.
 - **Origin Server Normalization (OSN)**: Tests for vulnerabilities where the origin server normalizes URL paths differently than the cache.
 - **Cache Server Normalization (CSN)**: Exploits discrepancies in how the cache server normalizes URL paths compared to the origin server.
 - **File Name Cache Rules (FNCR)**: Tests for vulnerabilities related to how common files (e.g., `robots.txt`, `index.html`) are cached.
