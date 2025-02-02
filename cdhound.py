@@ -250,7 +250,7 @@ def check_cache_behavior(url: str, headers: Dict[str, str], proxies: Dict[str, s
         )
 
         # Check additional headers
-        additional_headers = ['Vary', 'Pragma', 'Expires', 'Age']
+        additional_headers = ['Vary', 'Pragma', 'Expires', 'Age', 'Cache-Control']
         for header in additional_headers:
             debug_info[f'first_{header.lower()}'] = first_response.headers.get(header, '')
             debug_info[f'second_{header.lower()}'] = second_response.headers.get(header, '')
