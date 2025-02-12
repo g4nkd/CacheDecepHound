@@ -82,7 +82,7 @@ def extract_static_directories(response_text: str, url: str, headers: Dict[str, 
         current_path = ''
         for component in components:
             current_path = f"{current_path}/{component}"
-            if any(keyword in current_path.lower() for keyword in ['static', 'css', 'js', 'images', 'img', 'assets']):
+            if any(keyword in current_path.lower() for keyword in ['static', 'css', 'js', 'images', 'img', 'assets', 'settings']):
                 static_dirs.add(current_path)
 
     try:
