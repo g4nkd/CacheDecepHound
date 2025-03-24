@@ -169,6 +169,11 @@ def create_file_cache_test_urls(base_url: str, delimiters: List[str]) -> Set[str
     parsed_url = urllib.parse.urlparse(base_url)
     test_urls = set()
 
+    # Get the actual path from the URL
+    original_path = parsed_url.path.strip('/')
+    if not original_path:
+        original_path = ""
+
     # Common files to test
     common_files = ['robots.txt', 'index.html', 'index.php', 'sitemap.xml', 'favicon.ico', '404.html']
 
@@ -177,7 +182,10 @@ def create_file_cache_test_urls(base_url: str, delimiters: List[str]) -> Set[str
             # Generate a random query string
             random_query = generate_random_chars()
             # Create the test URL with delimiter and path traversal
-            test_url = f"{parsed_url.scheme}://{parsed_url.netloc}/my-account{delimiter}%2f%2e%2e%2f{file}?{random_query}"
+            if original_path:
+                test_url = f"{parsed_url.scheme}://{parsed_url.netloc}/{original_path}{delimiter}%2f%2e%2e%2f{file}?{random_query}"
+            else:
+                test_url = f"{parsed_url.scheme}://{parsed_url.netloc}/{delimiter}%2f%2e%2e%2f{file}?{random_query}"
             test_urls.add(test_url)
 
     return test_urls
