@@ -116,11 +116,18 @@ if (requestResponse.response().hasHeader("X-Cache-Header")) {
     }
 }
 
-// 2. Check for other cache headers (Age, Vary, Expires)
+// 2. Check for Age or Vary headers
 if (requestResponse.response().hasHeader("Age") || 
-    requestResponse.response().hasHeader("Vary") || 
-    requestResponse.response().hasHeader("Expires")) {
+    requestResponse.response().hasHeader("Vary")) {
     return true;
+}
+
+// 3. Special handling for Expires - must exist AND not be "0"
+if (requestResponse.response().hasHeader("Expires")) {
+    String expiresValue = requestResponse.response().headerValue("Expires");
+    if (!expiresValue.equals("0")) {  // Only match if Expires ≠ 0
+        return true;
+    }
 }
 
 return false;
@@ -134,6 +141,13 @@ How to Use It
    - Cache poisoning (e.g., inject malicious X-Cache-Header).
 
    - Sensitive data exposure (e.g., Age header on private API responses).
+
+After this maybe you'll discover some static files and you can add a parameter in the script `-s`
+- Examples:
+```bash
+python3 cdhound.py https://www.site.com/settings/profile -H "Cookie: XXX" -H "Authorization: XXX" -s 'avatar-builder/avatar_builder_clothing_selected.svg' -v
+python3 cdhound.py https://www.site.com/settings/profile -H "Cookie: XXX" -s 'static.js' -w delimeters-wordlist.txt
+```
 ---
 
 For more information on web cache poisoning and deception, refer to the [PortSwigger Web Security Academy](https://portswigger.net/web-security/web-cache-poisoning) and [Gotta Cache ‘em all bending the rules of web cache exploitation](https://www.youtube.com/watch?v=70yyOMFylUA).
