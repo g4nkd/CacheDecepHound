@@ -164,7 +164,7 @@ def create_csn_test_urls(base_url: str, static_dirs: Set[str], delimiters: List[
 
     return test_urls
 
-def create_file_cache_test_urls(base_url: str, delimiters: List[str]) -> Set[str]:
+def create_file_cache_test_urls(base_url: str, delimiters: List[str], static_files: List[str] = None) -> Set[str]:
     """Create test URLs for file name cache rule exploitation with delimiters and random query strings."""
     parsed_url = urllib.parse.urlparse(base_url)
     test_urls = set()
@@ -174,8 +174,10 @@ def create_file_cache_test_urls(base_url: str, delimiters: List[str]) -> Set[str
     if not original_path:
         original_path = ""
 
-    # Common files to test
+    # Common files to test (base list + user-provided)
     common_files = ['robots.txt', 'index.html', 'index.php', 'sitemap.xml', 'favicon.ico', '404.html']
+    if static_files:
+        common_files.extend(static_files)
 
     for file in common_files:
         for delimiter in delimiters:
@@ -280,12 +282,13 @@ def main():
 
     parser = argparse.ArgumentParser(
         description='Test for web cache poisoning vulnerabilities.',
-        formatter_class=argparse.RawTextHelpFormatter  # Preserves formatting in help text
+        formatter_class=argparse.RawTextHelpFormatter
     )
     parser.add_argument('url', help='Target URL')
     parser.add_argument('-H', '--header', help='Header in format "Name: Value" -> Used to authenticate requests')
     parser.add_argument('-w', '--wordlist', help='Path to custom delimiters wordlist', default=None)
     parser.add_argument('-e', '--extensions', help='Comma-separated list of extensions to test (default: ".js,.css,.png")', default='.js,.css,.png')
+    parser.add_argument('-s', '--static-files', help='Comma-separated list of additional static files to test (e.g., "static.js,config.json,/path/to/file.svg")', default='')
     parser.add_argument(
         '-T', '--technique',
         choices=['pd', 'osn', 'csn', 'fncr'],
@@ -320,6 +323,14 @@ Specific technique to run:
     techniques_to_run = [args.technique] if args.technique else ['default', 'osn', 'csn', 'fncr']
     recursion_depth = args.r
     static_dirs = None
+
+    # Process static files argument
+    static_files = []
+    if args.static_files:
+        static_files = [f.strip() for f in args.static_files.split(',') if f.strip()]
+        print(f"[*] Added {len(static_files)} custom static files:")
+        for file in static_files:
+            print(f"    - {file}")
 
     total_techniques = len(techniques_to_run)
     current_technique = 0
@@ -369,7 +380,7 @@ Specific technique to run:
             print("[*] Generating test URLs for file name cache rule exploitation...")
             delimiters = read_delimiters(args.wordlist) if args.wordlist else DEFAULT_DELIMITERS
             print(f"[*] Using {len(delimiters)} delimiters")
-            test_urls = create_file_cache_test_urls(args.url, delimiters)
+            test_urls = create_file_cache_test_urls(args.url, delimiters, static_files)
         
         if test_urls:
             print(f"[*] Testing {len(test_urls)} URLs for {technique.upper()} technique")
