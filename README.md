@@ -88,32 +88,52 @@ This technique targets cache rules that are based on specific file names (e.g., 
 
 ---
 
-### Mastering Cache Analysis with Burp Suite’s Bambda Mode
+### Advanced Cache Detection with Burp Bambda
 
-Burp Suite’s Bambda mode is a powerful feature for quickly filtering and analyzing HTTP traffic—especially when hunting for cache-related behaviors.
+Burp Suite’s Bambda mode lets you instantly filter HTTP traffic to find cached responses—saving hours of manual searching.
+Why This Matters
 
-A common use case is identifying responses with X-Cache-Header values (hit or miss), which can help in:
+Caching headers like X-Cache-Header, Age, Vary, and Expires reveal:
+- Cache hits/misses (hit, miss, refresh) → Is content being cached correctly?
 
-- Detecting caching misconfigurations
+- Cache duration (Age, Expires) → How long is data stored?
 
-- Testing cache poisoning vulnerabilities
+- Cache variations (Vary) → Does caching depend on headers like User-Agent?
 
-- Analyzing CDN or reverse proxy behavior
-
-Instead of manually sifting through thousands of requests, you can automate the filtering with this simple yet effective Bambda script:
-
+The Bambda Script:
 ```
 if (!requestResponse.hasResponse()) {
     return false;
 }
 
+// 1. Check for X-Cache-Header (hit/miss/refresh)
 if (requestResponse.response().hasHeader("X-Cache-Header")) {
-    String cacheHeader = requestResponse.response().headerValue("X-Cache-Header");
-    return cacheHeader.equalsIgnoreCase("hit") || cacheHeader.equalsIgnoreCase("miss");
+    String cacheStatus = requestResponse.response().headerValue("X-Cache-Header");
+    if (cacheStatus.equalsIgnoreCase("hit") || 
+        cacheStatus.equalsIgnoreCase("miss") || 
+        cacheStatus.equalsIgnoreCase("refresh")) {
+        return true;
+    }
+}
+
+// 2. Check for other cache headers (Age, Vary, Expires)
+if (requestResponse.response().hasHeader("Age") || 
+    requestResponse.response().hasHeader("Vary") || 
+    requestResponse.response().hasHeader("Expires")) {
+    return true;
 }
 
 return false;
 ```
+How to Use It
+
+- Paste into Burp’s Bambda editor (Proxy → Filter → Bambda).
+
+- Instantly see all cached responses.
+- Test for vulnerabilities:
+   - Cache poisoning (e.g., inject malicious X-Cache-Header).
+
+   - Sensitive data exposure (e.g., Age header on private API responses).
 ---
 
 For more information on web cache poisoning and deception, refer to the [PortSwigger Web Security Academy](https://portswigger.net/web-security/web-cache-poisoning) and [Gotta Cache ‘em all bending the rules of web cache exploitation](https://www.youtube.com/watch?v=70yyOMFylUA).
