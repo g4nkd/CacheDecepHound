@@ -148,6 +148,10 @@ After this maybe you'll discover some static files and you can add a parameter i
 python3 cdhound.py https://www.site.com/settings/profile -H "Cookie: XXX" -H "Authorization: XXX" -s 'avatar-builder/avatar_builder_clothing_selected.svg' -v
 python3 cdhound.py https://www.site.com/settings/profile -H "Cookie: XXX" -s 'static.js' -w delimeters-wordlist.txt
 ```
+- Deep Scanning:
+```bash
+python3 cdhound.py https://www.duolingo.com/settings/profile -H "Cookie: XXX" -v -s 'statics/static-file.svg,static.css' -w delimeters-wordlist.txt -e extensions-wordlist.txt -r 3
+```
 ---
 
 For more information on web cache poisoning and deception, refer to the [PortSwigger Web Security Academy](https://portswigger.net/web-security/web-cache-poisoning) and [Gotta Cache ‘em all bending the rules of web cache exploitation](https://www.youtube.com/watch?v=70yyOMFylUA).
