@@ -150,7 +150,7 @@ python3 cdhound.py https://www.site.com/settings/profile -H "Cookie: XXX" -s 'st
 ```
 - Deep Scanning:
 ```bash
-python3 cdhound.py https://www.duolingo.com/settings/profile -H "Cookie: XXX" -v -s 'statics/static-file.svg,static.css' -w delimeters-wordlist.txt -e extensions-wordlist.txt -r 3
+python3 cdhound.py https://www.site.com/settings/profile -H "Cookie: XXX" -v -s 'statics/static-file.svg,static.css' -w delimeters-wordlist.txt -e extensions-wordlist.txt -r 3
 ```
 ---
 
