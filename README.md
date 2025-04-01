@@ -88,4 +88,32 @@ This technique targets cache rules that are based on specific file names (e.g., 
 
 ---
 
+### Mastering Cache Analysis with Burp Suite’s Bambda Mode
+
+Burp Suite’s Bambda mode is a powerful feature for quickly filtering and analyzing HTTP traffic—especially when hunting for cache-related behaviors.
+
+A common use case is identifying responses with X-Cache-Header values (hit or miss), which can help in:
+
+- Detecting caching misconfigurations
+
+- Testing cache poisoning vulnerabilities
+
+- Analyzing CDN or reverse proxy behavior
+
+Instead of manually sifting through thousands of requests, you can automate the filtering with this simple yet effective Bambda script:
+
+```
+if (!requestResponse.hasResponse()) {
+    return false;
+}
+
+if (requestResponse.response().hasHeader("X-Cache-Header")) {
+    String cacheHeader = requestResponse.response().headerValue("X-Cache-Header");
+    return cacheHeader.equalsIgnoreCase("hit") || cacheHeader.equalsIgnoreCase("miss");
+}
+
+return false;
+```
+---
+
 For more information on web cache poisoning and deception, refer to the [PortSwigger Web Security Academy](https://portswigger.net/web-security/web-cache-poisoning) and [Gotta Cache ‘em all bending the rules of web cache exploitation](https://www.youtube.com/watch?v=70yyOMFylUA).
