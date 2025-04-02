@@ -102,32 +102,31 @@ Caching headers like X-Cache-Header, Age, Vary, and Expires reveal:
 
 The Bambda Script:
 ```
-if (!requestResponse.hasResponse()) {
-    return false;
+if (!requestResponse.hasResponse()) return false;
+
+// Check for cache headers
+if (requestResponse.response().hasHeader("X-Cache")) {
+    String cacheStatus = requestResponse.response().headerValue("X-Cache").toLowerCase();
+    if (cacheStatus.contains("hit")) return true;
+}
+if (requestResponse.response().hasHeader("X-Cache")) {
+    String cacheStatus = requestResponse.response().headerValue("X-Cache").toLowerCase();
+    if (cacheStatus.contains("hit from")) return true;
+}
+if (requestResponse.response().hasHeader("CF-Cache-Status")) {
+    String cacheStatus = requestResponse.response().headerValue("CF-Cache-Status").toLowerCase();
+    if (cacheStatus.contains("hit")) return true;
 }
 
-// 1. Check for X-Cache-Header (hit/miss/refresh)
-if (requestResponse.response().hasHeader("X-Cache-Header")) {
-    String cacheStatus = requestResponse.response().headerValue("X-Cache-Header");
-    if (cacheStatus.equalsIgnoreCase("hit") || 
-        cacheStatus.equalsIgnoreCase("miss") || 
-        cacheStatus.equalsIgnoreCase("refresh")) {
-        return true;
-    }
-}
-
-// 2. Check for Age or Vary headers
-if (requestResponse.response().hasHeader("Age") || 
-    requestResponse.response().hasHeader("Vary")) {
+// Check for Age/Vary
+if (requestResponse.response().hasHeader("Age")) {
     return true;
 }
 
-// 3. Special handling for Expires - must exist AND not be "0"
+// Check Expires (non-zero)
 if (requestResponse.response().hasHeader("Expires")) {
-    String expiresValue = requestResponse.response().headerValue("Expires");
-    if (!expiresValue.equals("0")) {  // Only match if Expires ≠ 0
-        return true;
-    }
+    String expires = requestResponse.response().headerValue("Expires");
+    if (!expires.equals("0")) return true;
 }
 
 return false;
